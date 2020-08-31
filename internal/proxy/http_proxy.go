@@ -14,6 +14,7 @@ import (
 
 	"github.com/BoynChan/GopherProxy/internal/loadbalance"
 	"github.com/BoynChan/GopherProxy/internal/urls"
+	"github.com/gin-gonic/gin"
 	"github.com/spf13/viper"
 )
 
@@ -32,14 +33,57 @@ var transport = &http.Transport{
 	ExpectContinueTimeout: 1 * time.Second,  //100-continue状态码超时时间
 }
 
-func NewHttpProxyHandler(urlSli []string, lbType loadbalance.Type) (*httputil.ReverseProxy, error) {
+func NewHttpProxyHandler(urlSli []string, lbType loadbalance.Type) (gin.HandlerFunc, error) {
 
 	registerAddr := viper.GetString("ZookeeperAddr")
 	dyUrls, err := urls.NewDynamicUrls(urlSli, lbType, registerAddr)
 	if err != nil {
 		return nil, err
 	}
-	director := func(req *http.Request) {
+	director := getDirector(dyUrls)
+
+	//更改内容
+	modifyFunc := getModifyFunc()
+
+	//错误回调 ：关闭real_server时测试，错误回调
+	//范围：transport.RoundTrip发生的错误、以及ModifyResponse发生的错误
+	errFunc := getErrorfunc()
+	reverseProxy := &httputil.ReverseProxy{
+		Director:       director,
+		Transport:      transport,
+		ModifyResponse: modifyFunc,
+		ErrorHandler:   errFunc}
+
+	return gin.WrapH(reverseProxy), nil
+
+}
+
+func getErrorfunc() func(w http.ResponseWriter, r *http.Request, err error) {
+	return func(w http.ResponseWriter, r *http.Request, err error) {
+		http.Error(w, "ErrorHandler error:"+err.Error(), 500)
+	}
+}
+
+func getModifyFunc() func(resp *http.Response) error {
+	return func(resp *http.Response) error {
+		if resp.StatusCode != 200 {
+			//获取内容
+			oldPayload, err := ioutil.ReadAll(resp.Body)
+			if err != nil {
+				return err
+			}
+			//追加内容
+			newPayload := []byte("StatusCode error:" + string(oldPayload))
+			resp.Body = ioutil.NopCloser(bytes.NewBuffer(newPayload))
+			resp.ContentLength = int64(len(newPayload))
+			resp.Header.Set("Content-Length", strconv.FormatInt(int64(len(newPayload)), 10))
+		}
+		return nil
+	}
+}
+
+func getDirector(dyUrls *urls.DynamicUrls) func(req *http.Request) {
+	return func(req *http.Request) {
 		nextAddr, err := dyUrls.GetNext(req.RemoteAddr)
 		if err != nil {
 			log.Fatal("get next addr fail")
@@ -62,32 +106,6 @@ func NewHttpProxyHandler(urlSli []string, lbType loadbalance.Type) (*httputil.Re
 		}
 		req.Header.Set("X-Real-Ip", req.RemoteAddr)
 	}
-
-	//更改内容
-	modifyFunc := func(resp *http.Response) error {
-		if resp.StatusCode != 200 {
-			//获取内容
-			oldPayload, err := ioutil.ReadAll(resp.Body)
-			if err != nil {
-				return err
-			}
-			//追加内容
-			newPayload := []byte("StatusCode error:" + string(oldPayload))
-			resp.Body = ioutil.NopCloser(bytes.NewBuffer(newPayload))
-			resp.ContentLength = int64(len(newPayload))
-			resp.Header.Set("Content-Length", strconv.FormatInt(int64(len(newPayload)), 10))
-		}
-		return nil
-	}
-
-	//错误回调 ：关闭real_server时测试，错误回调
-	//范围：transport.RoundTrip发生的错误、以及ModifyResponse发生的错误
-	errFunc := func(w http.ResponseWriter, r *http.Request, err error) {
-		http.Error(w, "ErrorHandler error:"+err.Error(), 500)
-	}
-
-	return &httputil.ReverseProxy{Director: director, Transport: transport, ModifyResponse: modifyFunc, ErrorHandler: errFunc}, nil
-
 }
 
 func singleJoiningSlash(a, b string) string {

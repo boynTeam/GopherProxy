@@ -18,8 +18,8 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	r := gin.Default()
-	r.GET("/*path", gin.WrapH(proxyHandler))
+	r := gin.New()
+	r.GET("/*path", proxyHandler)
 
 	if err := r.Run(":2000"); err != nil {
 		panic(err)
