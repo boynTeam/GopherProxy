@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"strings"
 	"sync"
 
 	_ "github.com/BoynChan/GopherProxy/pkg"
@@ -36,7 +37,8 @@ func main() {
 	wg.Add(len(addrs))
 	for _, a := range addrs {
 		go func(addr string) {
-			if err := newGinServer(addr).Run(addr); err != nil {
+			port := strings.Split(addr, "/")[2]
+			if err := newGinServer(port).Run(port); err != nil {
 				wg.Done()
 			}
 		}(a)
