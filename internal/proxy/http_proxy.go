@@ -66,6 +66,9 @@ func getErrorfunc() func(w http.ResponseWriter, r *http.Request, err error) {
 
 func getModifyFunc() func(resp *http.Response) error {
 	return func(resp *http.Response) error {
+		if strings.Contains(resp.Header.Get("Connection"), "Upgrade") {
+			return nil
+		}
 		if resp.StatusCode != 200 {
 			//获取内容
 			oldPayload, err := ioutil.ReadAll(resp.Body)

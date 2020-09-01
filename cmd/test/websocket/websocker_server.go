@@ -2,17 +2,22 @@ package main
 
 import (
 	"html/template"
+	"net/http"
+	"strings"
 
 	_ "github.com/BoynChan/GopherProxy/pkg"
 	"github.com/gin-gonic/gin"
 	"github.com/gorilla/websocket"
 	"github.com/sirupsen/logrus"
+	"github.com/spf13/viper"
 )
 
 // Author:Boyn
 // Date:2020/9/1
 
-var upgrader = websocket.Upgrader{}
+var upgrader = websocket.Upgrader{CheckOrigin: func(r *http.Request) bool {
+	return true
+}}
 
 func echo(c *gin.Context) {
 	conn, err := upgrader.Upgrade(c.Writer, c.Request, nil)
@@ -41,10 +46,11 @@ func home(c *gin.Context) {
 }
 
 func main() {
+	addr := viper.GetString("Http.WebsockerServer")
 	r := gin.Default()
 	r.GET("/echo", echo)
 	r.GET("/", home)
-	if err := r.Run(":2001"); err != nil {
+	if err := r.Run(strings.Split(addr, "/")[2]); err != nil {
 		logrus.Errorf("Run gin error: %v", err)
 	}
 }
