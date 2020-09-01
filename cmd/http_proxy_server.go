@@ -21,7 +21,8 @@ func main() {
 	}
 	r := gin.New()
 	limiter := middleware.NewRateLimiter(2, 4)
-	r.GET("/*path", gin.Logger(), limiter.GinMiddleWare(), proxyHandler)
+	circuitBreaker := middleware.NewCircuitBreaker("http_proxy", false)
+	r.GET("/*path", gin.Logger(), circuitBreaker.GinMiddleWare(), limiter.GinMiddleWare(), proxyHandler)
 
 	if err := r.Run(":2000"); err != nil {
 		panic(err)
