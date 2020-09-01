@@ -2,6 +2,7 @@ package main
 
 import (
 	"github.com/BoynChan/GopherProxy/internal/loadbalance"
+	"github.com/BoynChan/GopherProxy/internal/middleware"
 	"github.com/BoynChan/GopherProxy/internal/proxy"
 	_ "github.com/BoynChan/GopherProxy/pkg"
 	"github.com/gin-gonic/gin"
@@ -19,7 +20,8 @@ func main() {
 		panic(err)
 	}
 	r := gin.New()
-	r.GET("/*path", proxyHandler)
+	limiter := middleware.NewRateLimiter(2, 4)
+	r.GET("/*path", gin.Logger(), limiter.GinMiddleWare(), proxyHandler)
 
 	if err := r.Run(":2000"); err != nil {
 		panic(err)

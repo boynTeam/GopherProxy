@@ -2,9 +2,11 @@ package main
 
 import (
 	"fmt"
+	"net/http"
 	"strings"
 	"sync"
 
+	"github.com/BoynChan/GopherProxy/pkg"
 	_ "github.com/BoynChan/GopherProxy/pkg"
 	"github.com/gin-gonic/gin"
 	"github.com/spf13/viper"
@@ -19,14 +21,12 @@ func newGinServer(addr string) *gin.Engine {
 	r.GET("/*path", func(c *gin.Context) {
 		// in this handler, we just simply send some basic info back to proxy response.
 		req := c.Request
-		path := c.Param("path")
-		fmt.Println(path)
 		urlPath := fmt.Sprintf("http://%s%s", addr, req.RequestURI)
 		realIP := fmt.Sprintf("RemoteAddr=%s,X-Forwarded-For=%v,X-Real-Ip=%v", req.RemoteAddr, req.Header.Get("X-Forwarded-For"), req.Header.Get("X-Real-Ip"))
-		c.JSON(200, gin.H{
+		c.JSON(http.StatusOK, pkg.NewMessageBuilder().Data(gin.H{
 			"path": urlPath,
 			"ip":   realIP,
-		})
+		}).Build())
 	})
 	return r
 }
