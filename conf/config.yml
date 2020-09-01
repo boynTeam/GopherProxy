@@ -1,7 +1,9 @@
 Http:
   RealServer:
-    http://127.0.0.1:2003
-    http://127.0.0.1:2004
-    http://127.0.0.1:2005
+    https://127.0.0.1:2003
+    https://127.0.0.1:2004
+    https://127.0.0.1:2005
   WebsockerServer: http://127.0.0.1:2006
+  Cert: cert.pem
+  Key: key.pem
 ZookeeperAddr: http://127.0.0.1:9999

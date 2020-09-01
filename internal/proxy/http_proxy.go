@@ -2,6 +2,9 @@ package proxy
 
 import (
 	"bytes"
+	"crypto/tls"
+	"crypto/x509"
+	"encoding/json"
 	"io/ioutil"
 	"log"
 	"net"
@@ -14,8 +17,10 @@ import (
 
 	"github.com/BoynChan/GopherProxy/internal/loadbalance"
 	"github.com/BoynChan/GopherProxy/internal/urls"
+	"github.com/BoynChan/GopherProxy/pkg"
 	"github.com/gin-gonic/gin"
 	"github.com/spf13/viper"
+	"golang.org/x/net/http2"
 )
 
 // Author:Boyn
@@ -27,6 +32,13 @@ var transport = &http.Transport{
 		Timeout:   30 * time.Second, //连接超时
 		KeepAlive: 30 * time.Second, //长连接超时时间
 	}).DialContext,
+	TLSClientConfig: func() *tls.Config {
+		pool := x509.NewCertPool()
+		caCertPath := viper.GetString("Http.Cert")
+		caCrt, _ := ioutil.ReadFile(caCertPath)
+		pool.AppendCertsFromPEM(caCrt)
+		return &tls.Config{RootCAs: pool, InsecureSkipVerify: true}
+	}(),
 	MaxIdleConns:          100,              //最大空闲连接
 	IdleConnTimeout:       90 * time.Second, //空闲超时时间
 	TLSHandshakeTimeout:   10 * time.Second, //tls握手超时时间
@@ -48,6 +60,8 @@ func NewHttpProxyHandler(urlSli []string, lbType loadbalance.Type) (gin.HandlerF
 	//错误回调 ：关闭real_server时测试，错误回调
 	//范围：transport.RoundTrip发生的错误、以及ModifyResponse发生的错误
 	errFunc := getErrorfunc()
+
+	http2.ConfigureTransport(transport)
 	reverseProxy := &httputil.ReverseProxy{
 		Director:       director,
 		Transport:      transport,
@@ -75,8 +89,10 @@ func getModifyFunc() func(resp *http.Response) error {
 			if err != nil {
 				return err
 			}
+			message := pkg.NewMessageBuilder().Code(pkg.DownstreamErrorCode).Message(string(oldPayload)).Build()
+			newPayload, _ := json.Marshal(message)
 			//追加内容
-			newPayload := []byte("StatusCode error:" + string(oldPayload))
+			resp.StatusCode = http.StatusOK
 			resp.Body = ioutil.NopCloser(bytes.NewBuffer(newPayload))
 			resp.ContentLength = int64(len(newPayload))
 			resp.Header.Set("Content-Length", strconv.FormatInt(int64(len(newPayload)), 10))

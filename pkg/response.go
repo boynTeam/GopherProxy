@@ -22,6 +22,8 @@ const (
 	DefaultRateLimitErrorCode = "rate limit not allow"
 
 	CircuitBreakerErrorCode = 1001
+
+	DownstreamErrorCode = 1002
 )
 
 func NewMessageBuilder() *MessageBuilder {

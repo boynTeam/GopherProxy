@@ -19,6 +19,8 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
+	certFile := viper.GetString("Http.Cert")
+	keyFile := viper.GetString("Http.Key")
 	r := gin.New()
 
 	// 速度限流器
@@ -29,7 +31,7 @@ func main() {
 
 	r.GET("/*path", gin.Logger(), circuitBreaker.GinMiddleWare(), limiter.GinMiddleWare(), proxyHandler)
 
-	if err := r.Run(":2000"); err != nil {
+	if err := r.RunTLS(":2000", certFile, keyFile); err != nil {
 		panic(err)
 	}
 }
