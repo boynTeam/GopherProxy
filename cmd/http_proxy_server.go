@@ -20,8 +20,13 @@ func main() {
 		panic(err)
 	}
 	r := gin.New()
+
+	// 速度限流器
 	limiter := middleware.NewRateLimiter(2, 4)
+
+	// 断路器
 	circuitBreaker := middleware.NewCircuitBreaker("http_proxy", false)
+
 	r.GET("/*path", gin.Logger(), circuitBreaker.GinMiddleWare(), limiter.GinMiddleWare(), proxyHandler)
 
 	if err := r.Run(":2000"); err != nil {
