@@ -1,0 +1,28 @@
+syntax = "proto3";
+package echo;
+option go_package = "proto";
+
+import "google/api/annotataions.proto"
+
+message EchoRequest {
+    string message = 1;
+}
+
+message EchoResponse {
+    string message = 1;
+}
+
+service Echo {
+    rpc UnaryEcho (EchoRequest) returns (EchoResponse) {
+        option (google.api.http) = {
+            post: "/v1/example/echo"
+            body: "*"
+        };
+    }
+    rpc ServerStreamingEcho (EchoRequest) returns (stream EchoResponse) {
+    }
+    rpc ClientStreamingEcho (stream EchoRequest) returns (EchoResponse) {
+    }
+    rpc BidirectionalStreamingEcho (stream EchoRequest) returns (stream EchoResponse) {
+    }
+}
