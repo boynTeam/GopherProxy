@@ -28,7 +28,7 @@ func main() {
 			}
 			fmt.Printf("server listening at %v\n", lis.Addr())
 			s := grpc.NewServer()
-			pb.RegisterEchoServer(s, &server.EchoServerImpl{})
+			pb.RegisterEchoServer(s, &server.EchoServerImpl{Addr: address})
 			if err := s.Serve(lis); err != nil {
 				panic(err)
 			}

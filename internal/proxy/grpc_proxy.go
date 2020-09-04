@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"github.com/BoynChan/GopherProxy/internal/loadbalance"
+	"github.com/BoynChan/GopherProxy/internal/middleware"
 	"github.com/BoynChan/GopherProxy/internal/urls"
 	proxy "github.com/e421083458/grpc-proxy/proxy"
 	"github.com/spf13/viper"
@@ -40,7 +41,9 @@ func NewGrpcProxyServer(urlSli []string, lbType loadbalance.Type) (*grpc.Server,
 		return outCtx, c, err
 	}
 
+	limiter := middleware.NewRateLimiter(1, 2)
 	return grpc.NewServer(
+		grpc.ChainStreamInterceptor(limiter.GrpcMiddleWare()),
 		grpc.CustomCodec(proxy.Codec()),
 		grpc.UnknownServiceHandler(proxy.TransparentHandler(director))), nil
 }

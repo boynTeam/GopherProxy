@@ -15,10 +15,11 @@ const (
 )
 
 type EchoServerImpl struct {
+	Addr string
 }
 
 func (e *EchoServerImpl) UnaryEcho(ctx context.Context, request *pb.EchoRequest) (*pb.EchoResponse, error) {
-	logrus.Infof("UnaryEcho: receive message: %s", request.Message)
+	logrus.Infof("UnaryEcho: receive message: %s IN %s", request.Message, e.Addr)
 	return &pb.EchoResponse{Message: request.Message}, nil
 }
 
