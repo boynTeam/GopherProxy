@@ -82,7 +82,6 @@ func (z *ZkManager) RegistServerTmpNode(prefix, nodeName string) (err error) {
 		return err
 	}
 	if !ex {
-		//持久化节点，思考题：如果不是持久化节点会怎么样？
 		err = z.doRegister(prefix, false)
 		if err != nil {
 			logrus.Errorf("Create error %v %s", err, prefix)
