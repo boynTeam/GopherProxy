@@ -4,6 +4,7 @@ package register
 // Date:2020/9/4
 
 import (
+	"errors"
 	"fmt"
 	"time"
 
@@ -17,7 +18,7 @@ type ZkManager struct {
 	pathPrefix string
 }
 
-func NewZkManager(hosts []string) *ZkManager {
+func NewZkManager(hosts ...string) *ZkManager {
 	return &ZkManager{hosts: hosts, pathPrefix: "/gateway_servers_"}
 }
 
@@ -43,11 +44,10 @@ func (z *ZkManager) GetPathData(nodePath string) ([]byte, *zk.Stat, error) {
 }
 
 //更新配置
-func (z *ZkManager) SetPathData(nodePath string, config []byte, version int32) (err error) {
+func (z *ZkManager) SetPathData(nodePath string, config []byte) (err error) {
 	ex, _ := z.NodeExist(nodePath)
 	if !ex {
-		err := z.doRegister(nodePath, false, config...)
-		return err
+		return errors.New("node does not exists")
 	}
 	_, dStat, err := z.GetPathData(nodePath)
 	if err != nil {
@@ -62,33 +62,31 @@ func (z *ZkManager) SetPathData(nodePath string, config []byte, version int32) (
 }
 
 func (z *ZkManager) RegisterServerNode(prefix, nodeName string, data ...byte) error {
-	ex, err := z.NodeExist(prefix)
-	if err != nil {
-		logrus.Errorf("Exists error %v", prefix)
-		return err
-	}
-	if !ex {
-		err := z.doRegister(fmt.Sprintf("%s/%s", prefix, nodeName), false, data...)
-		return err
-	}
-	return nil
+	return z.doRegister(prefix, nodeName, false, data...)
 }
 
 //创建临时节点
-func (z *ZkManager) RegistServerTmpNode(prefix, nodeName string) (err error) {
+func (z *ZkManager) RegistServerTmpNode(prefix, nodeName string, data ...byte) (err error) {
+	return z.doRegister(prefix, nodeName, true, data...)
+}
+
+func (z *ZkManager) doRegister(prefix string, nodeName string, isTemp bool, data ...byte) error {
+	var flag int32
+	if isTemp {
+		flag = zk.FlagEphemeral
+	}
 	ex, err := z.NodeExist(prefix)
 	if err != nil {
 		logrus.Errorf("Exists error %v", prefix)
 		return err
 	}
 	if !ex {
-		err = z.doRegister(prefix, false)
+		_, err = z.conn.Create(prefix, data, 0, zk.WorldACL(zk.PermAll))
 		if err != nil {
 			logrus.Errorf("Create error %v %s", err, prefix)
 			return err
 		}
 	}
-	//临时节点
 	subNodePath := fmt.Sprintf("%s/%s", prefix, nodeName)
 	ex, err = z.NodeExist(subNodePath)
 	if err != nil {
@@ -96,22 +94,13 @@ func (z *ZkManager) RegistServerTmpNode(prefix, nodeName string) (err error) {
 		return err
 	}
 	if !ex {
-		err = z.doRegister(subNodePath, true)
+		_, err = z.conn.Create(subNodePath, data, flag, zk.WorldACL(zk.PermAll))
 		if err != nil {
 			logrus.Errorf("Create error %v", subNodePath)
 			return err
 		}
 	}
-	return
-}
-
-func (z *ZkManager) doRegister(path string, isTemp bool, data ...byte) error {
-	var flag int32
-	if isTemp {
-		flag = zk.FlagEphemeral
-	}
-	_, err := z.conn.Create(path, data, flag, zk.WorldACL(zk.PermAll))
-	return err
+	return nil
 }
 
 func (z *ZkManager) NodeExist(path string) (bool, error) {
