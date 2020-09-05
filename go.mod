@@ -6,6 +6,7 @@ require (
 	github.com/afex/hystrix-go v0.0.0-20180502004556-fa1af6a1f4f5
 	github.com/e421083458/grpc-proxy v0.2.0
 	github.com/gin-gonic/gin v1.6.3
+	github.com/go-zookeeper/zk v1.0.2
 	github.com/golang/glog v0.0.0-20160126235308-23def4e6c14b
 	github.com/golang/protobuf v1.4.2
 	github.com/gorilla/websocket v1.4.2
