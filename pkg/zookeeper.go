@@ -76,20 +76,12 @@ func (z *ZkManager) doRegister(path string, isTemp bool, data ...byte) error {
 	if isTemp {
 		flag = zk.FlagEphemeral
 	}
-	index := strings.LastIndex(path, "/")
-	pathList := strings.Split(path[1:index], "/")
-	for _, existPath := range pathList {
-		ex, err := z.NodeExist(existPath)
+	index := strings.LastIndex(path[1:], "/")
+	if index != -1 {
+		err := z.registerPath(path, index)
 		if err != nil {
-			logrus.Errorf("Exists error %v", existPath)
+			logrus.Errorf("registerPath error %v", err)
 			return err
-		}
-		if !ex {
-			_, err = z.conn.Create(existPath, data, 0, zk.WorldACL(zk.PermAll))
-			if err != nil {
-				logrus.Errorf("Create error %v %s", err, existPath)
-				return err
-			}
 		}
 	}
 	ex, err := z.NodeExist(path)
@@ -102,6 +94,28 @@ func (z *ZkManager) doRegister(path string, isTemp bool, data ...byte) error {
 		if err != nil {
 			logrus.Errorf("Create error %v", path)
 			return err
+		}
+	}
+	return nil
+}
+
+// 注册结点前面的路径 类似mkdir -p
+func (z *ZkManager) registerPath(path string, index int) error {
+	pathList := strings.Split(path[1:index+1], "/")
+	pathBuffer := ""
+	for _, existPath := range pathList {
+		pathBuffer = fmt.Sprintf("%s/%s", pathBuffer, existPath)
+		ex, err := z.NodeExist(pathBuffer)
+		if err != nil {
+			logrus.Errorf("Exists path %s error %v", pathBuffer, err)
+			return err
+		}
+		if !ex {
+			_, err = z.conn.Create(pathBuffer, nil, 0, zk.WorldACL(zk.PermAll))
+			if err != nil {
+				logrus.Errorf("Create error %v %s", err, pathBuffer)
+				return err
+			}
 		}
 	}
 	return nil
