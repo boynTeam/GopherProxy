@@ -82,6 +82,7 @@ func (c *ZkConfig) UpdateConf(conf []string) {
 		logrus.Errorf("Update Conf -> get Conf failed %v", err)
 		return
 	}
+	logrus.Infof("Update Service Config %+v", values)
 	for _, obs := range c.observers {
 		obs.Update(values)
 	}
@@ -89,7 +90,10 @@ func (c *ZkConfig) UpdateConf(conf []string) {
 
 func NewZkConf(format, path string, zkHosts []string) (Config, error) {
 	zkManager := pkg.NewZkManager(zkHosts...)
-	zkManager.GetConnect()
+	err := zkManager.GetConnect()
+	if err != nil {
+		return nil, err
+	}
 	defer zkManager.Close()
 	pathList := strings.Split(path[1:], "/")
 	var pathBuffer string

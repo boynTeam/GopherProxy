@@ -47,7 +47,7 @@ var transport = &http.Transport{
 
 func NewHttpProxyHandler(serviceName string, lbType loadbalance.Type) (gin.HandlerFunc, error) {
 
-	registerAddr := viper.GetString("ZookeeperAddr")
+	registerAddr := viper.GetString("Zk.Addr")
 	dyUrls, err := urls.NewDynamicUrls(serviceName, lbType, registerAddr)
 	if err != nil {
 		return nil, err

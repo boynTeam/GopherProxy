@@ -11,6 +11,6 @@ Grpc:
     127.0.0.1:50055
     127.0.0.1:50056
 Zk:
-  Addr: http://127.0.0.1:9999
+  Addr: 127.0.0.1:2181
   HttpPrefix: /http_real_server
 

@@ -18,7 +18,7 @@ type DynamicUrls struct {
 }
 
 func NewDynamicUrls(serviceName string, lbType loadbalance.Type, registerAddr string, param ...string) (*DynamicUrls, error) {
-	httpPrefix := viper.GetString("Zk.Prefix")
+	httpPrefix := viper.GetString("Zk.HttpPrefix")
 	conf, err := loadbalance.NewZkConf("%s", fmt.Sprintf("%s/%s", httpPrefix, serviceName), []string{registerAddr})
 	if err != nil {
 		return nil, err

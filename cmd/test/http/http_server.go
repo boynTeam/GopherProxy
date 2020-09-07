@@ -19,10 +19,6 @@ import (
 // Author:Boyn
 // Date:2020/8/31
 
-const (
-	zkRegisterPrefix = "/http_real_server"
-)
-
 type HttpServer struct {
 	Addr        string
 	ServiceName string
@@ -57,6 +53,7 @@ func (h *HttpServer) Post(path string, f ...gin.HandlerFunc) {
 
 func (h *HttpServer) register() error {
 	zkHostIp := os.Getenv("ZK_HOST_IP")
+	zkRegisterPrefix := viper.GetString("Zk.HttpPrefix")
 	if zkHostIp == "" {
 		return errors.New("no zookeeper running")
 	}
@@ -64,7 +61,7 @@ func (h *HttpServer) register() error {
 		manager := pkg.NewZkManager(zkHostIp)
 		_ = manager.GetConnect()
 		servicePrefix := fmt.Sprintf("%s/%s", zkRegisterPrefix, h.ServiceName)
-		err := manager.RegistServerTmpNode(servicePrefix, h.Addr, []byte(fmt.Sprintf("http://%s", h.Addr))...)
+		err := manager.RegistServerTmpNode(servicePrefix, h.Addr, []byte(fmt.Sprintf("https://%s", h.Addr))...)
 		if err != nil {
 			logrus.Errorf("Register error: %v  addr: %s", err, h.Addr)
 		}
