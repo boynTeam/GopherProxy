@@ -1,6 +1,8 @@
-package round_robin
+package loadbalance
 
-import "sync"
+import (
+	"sync"
+)
 
 // Author:Boyn
 // Date:2020/8/31
@@ -15,10 +17,14 @@ func NewRoundRobin() *RoundRobinBalance {
 	return &RoundRobinBalance{}
 }
 
-func (r *RoundRobinBalance) Add(s ...string) error {
+func (r *RoundRobinBalance) Add(s ...ConfigValue) error {
 	r.rw.Lock()
 	defer r.rw.Unlock()
-	r.rss = append(r.rss, s...)
+	newList := make([]string, 0)
+	for _, v := range s {
+		newList = append(newList, v.Value)
+	}
+	r.rss = append(r.rss, newList...)
 	return nil
 }
 
@@ -43,9 +49,13 @@ func (r *RoundRobinBalance) GetAll() []string {
 	return r.rss
 }
 
-func (r *RoundRobinBalance) Update(newRss []string) error {
+func (r *RoundRobinBalance) Update(newRss []ConfigValue) error {
+	newList := make([]string, 0)
+	for _, v := range newRss {
+		newList = append(newList, v.Value)
+	}
 	r.rw.Lock()
 	defer r.rw.Unlock()
-	r.rss = newRss
+	r.rss = newList
 	return nil
 }

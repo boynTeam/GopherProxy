@@ -14,8 +14,8 @@ import (
 // Date:2020/8/31
 
 func main() {
-	addrs := viper.GetStringSlice("Http.RealServer")
-	proxyHandler, err := proxy.NewHttpProxyHandler(addrs, loadbalance.Random)
+	serviceName := "TEST_HTTP_PROXY"
+	proxyHandler, err := proxy.NewHttpProxyHandler(serviceName, loadbalance.Random)
 	if err != nil {
 		panic(err)
 	}

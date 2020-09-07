@@ -8,7 +8,6 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/BoynChan/GopherProxy/internal/register"
 	"github.com/BoynChan/GopherProxy/pkg"
 	_ "github.com/BoynChan/GopherProxy/pkg"
 	"github.com/gin-gonic/gin"
@@ -62,7 +61,7 @@ func (h *HttpServer) register() error {
 		return errors.New("no zookeeper running")
 	}
 	go func() {
-		manager := register.NewZkManager(zkHostIp)
+		manager := pkg.NewZkManager(zkHostIp)
 		_ = manager.GetConnect()
 		servicePrefix := fmt.Sprintf("%s/%s", zkRegisterPrefix, h.ServiceName)
 		err := manager.RegistServerTmpNode(servicePrefix, h.Addr, []byte(fmt.Sprintf("http://%s", h.Addr))...)

@@ -18,9 +18,9 @@ import (
 // Author:Boyn
 // Date:2020/9/3
 
-func NewGrpcProxyServer(urlSli []string, lbType loadbalance.Type) (*grpc.Server, error) {
+func NewGrpcProxyServer(serviceName string, lbType loadbalance.Type) (*grpc.Server, error) {
 	registerAddr := viper.GetString("ZookeeperAddr")
-	dyUrls, err := urls.NewDynamicUrls(urlSli, lbType, registerAddr)
+	dyUrls, err := urls.NewDynamicUrls(serviceName, lbType, registerAddr)
 	if err != nil {
 		return nil, err
 	}

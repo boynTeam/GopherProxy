@@ -10,4 +10,7 @@ Grpc:
   RealServer:
     127.0.0.1:50055
     127.0.0.1:50056
-ZookeeperAddr: http://127.0.0.1:9999
+Zk:
+  Addr: http://127.0.0.1:9999
+  HttpPrefix: /http_real_server
+

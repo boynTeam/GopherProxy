@@ -7,17 +7,19 @@ import (
 	"os/signal"
 	"syscall"
 	"testing"
+
+	"github.com/BoynChan/GopherProxy/pkg"
 )
 
 // Author:Boyn
 // Date:2020/9/4
 
 func TestWatch(t *testing.T) {
-	zkManager := NewZkManager([]string{"127.0.0.1:2181"})
+	zkManager := pkg.NewZkManager([]string{"127.0.0.1:2181"}...)
 	zkManager.GetConnect()
 	defer zkManager.Close()
 
-	zlist, err := zkManager.GetServerListByPath("/real_server")
+	zlist, err := zkManager.GetServerListByPath("/http_real_server/TEST_HTTP_PROXY")
 	fmt.Println("server node:")
 	fmt.Println(zlist)
 	if err != nil {
@@ -25,7 +27,7 @@ func TestWatch(t *testing.T) {
 	}
 
 	//动态监听节点变化
-	chanList, chanErr := zkManager.WatchServerListByPath("/real_server")
+	chanList, chanErr := zkManager.WatchServerListByPath("/http_real_server/TEST_HTTP_PROXY")
 	go func() {
 		for {
 			select {

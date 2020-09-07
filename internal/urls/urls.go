@@ -1,7 +1,10 @@
 package urls
 
 import (
+	"fmt"
+
 	"github.com/BoynChan/GopherProxy/internal/loadbalance"
+	"github.com/spf13/viper"
 )
 
 // Author:Boyn
@@ -9,22 +12,24 @@ import (
 
 type DynamicUrls struct {
 	RegisterAddr string // 注册中心地址
+	ServiceName  string
 	Strategy     loadbalance.LoadBalance
+	Config       loadbalance.Config
 }
 
-func NewDynamicUrls(urls []string, lbType loadbalance.Type, registerAddr string, param ...string) (*DynamicUrls, error) {
-	lb, err := loadbalance.NewStrategy(lbType)
+func NewDynamicUrls(serviceName string, lbType loadbalance.Type, registerAddr string, param ...string) (*DynamicUrls, error) {
+	httpPrefix := viper.GetString("Zk.Prefix")
+	conf, err := loadbalance.NewZkConf("%s", fmt.Sprintf("%s/%s", httpPrefix, serviceName), []string{registerAddr})
 	if err != nil {
 		return nil, err
 	}
-	for _, addr := range urls {
-		err := lb.Add(addr)
-		if err != nil {
-			return nil, err
-		}
+	lb, err := loadbalance.NewStrategyWithConf(lbType, conf)
+	if err != nil {
+		return nil, err
 	}
 	return &DynamicUrls{
 		RegisterAddr: registerAddr,
+		Config:       conf,
 		Strategy:     lb,
 	}, nil
 }
@@ -35,14 +40,4 @@ func (s *DynamicUrls) GetNext(key string) (string, error) {
 
 func (s *DynamicUrls) GetAllUrl() []string {
 	return s.Strategy.GetAll()
-}
-
-func (s *DynamicUrls) Watch() {
-	blockingChannle := make(chan struct{})
-	go func() {
-		for {
-			// load config()
-			<-blockingChannle
-		}
-	}()
 }

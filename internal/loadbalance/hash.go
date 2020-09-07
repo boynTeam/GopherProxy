@@ -1,4 +1,4 @@
-package consistent_hash
+package loadbalance
 
 import (
 	"errors"
@@ -46,11 +46,11 @@ func NewConsistentHash() *ConsistentHashBalance {
 	return m
 }
 
-func (c *ConsistentHashBalance) Add(params ...string) error {
+func (c *ConsistentHashBalance) Add(params ...ConfigValue) error {
 	if len(params) == 0 {
 		return errors.New("param len 1 at least")
 	}
-	addr := params[0]
+	addr := params[0].Value
 	c.mux.Lock()
 	defer c.mux.Unlock()
 	// 结合复制因子计算所有虚拟节点的hash值，并存入m.keys中，同时在m.hashMap中保存哈希值和key的映射
@@ -95,8 +95,17 @@ func (c *ConsistentHashBalance) GetAll() []string {
 	return addrs
 }
 
-func (c *ConsistentHashBalance) Update(rss []string) error {
+func (c *ConsistentHashBalance) Update(newRss []ConfigValue) error {
+	newHash := NewConsistentHash()
+	for _, v := range newRss {
+		err := newHash.Add(v)
+		if err != nil {
+			return err
+		}
+	}
 	c.mux.Lock()
 	defer c.mux.Unlock()
-	return c.Add(rss...)
+	c.keys = newHash.keys
+	c.hashMap = newHash.hashMap
+	return nil
 }

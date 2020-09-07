@@ -45,10 +45,10 @@ var transport = &http.Transport{
 	ExpectContinueTimeout: 1 * time.Second,  //100-continue状态码超时时间
 }
 
-func NewHttpProxyHandler(urlSli []string, lbType loadbalance.Type) (gin.HandlerFunc, error) {
+func NewHttpProxyHandler(serviceName string, lbType loadbalance.Type) (gin.HandlerFunc, error) {
 
 	registerAddr := viper.GetString("ZookeeperAddr")
-	dyUrls, err := urls.NewDynamicUrls(urlSli, lbType, registerAddr)
+	dyUrls, err := urls.NewDynamicUrls(serviceName, lbType, registerAddr)
 	if err != nil {
 		return nil, err
 	}

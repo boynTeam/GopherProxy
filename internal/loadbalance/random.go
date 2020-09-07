@@ -1,4 +1,4 @@
-package random
+package loadbalance
 
 import (
 	"math/rand"
@@ -17,10 +17,14 @@ func NewRandomBalance() *RandomBalance {
 	return &RandomBalance{}
 }
 
-func (r *RandomBalance) Add(s ...string) error {
+func (r *RandomBalance) Add(s ...ConfigValue) error {
 	r.rw.Lock()
 	defer r.rw.Unlock()
-	r.rss = append(r.rss, s...)
+	newList := make([]string, 0)
+	for _, v := range s {
+		newList = append(newList, v.Value)
+	}
+	r.rss = append(r.rss, newList...)
 	return nil
 }
 
@@ -40,9 +44,13 @@ func (r *RandomBalance) GetAll() []string {
 	return r.rss
 }
 
-func (r *RandomBalance) Update(newRss []string) error {
+func (r *RandomBalance) Update(newRss []ConfigValue) error {
+	newList := make([]string, 0)
+	for _, v := range newRss {
+		newList = append(newList, v.Value)
+	}
 	r.rw.Lock()
 	defer r.rw.Unlock()
-	r.rss = newRss
+	r.rss = newList
 	return nil
 }
