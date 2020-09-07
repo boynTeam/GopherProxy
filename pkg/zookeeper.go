@@ -62,6 +62,15 @@ func (z *ZkManager) SetPathData(nodePath string, config []byte) (err error) {
 	return
 }
 
+func (z *ZkManager) DeleteNode(prefix, nodeName string) error {
+	path := fmt.Sprintf("%s/%s", prefix, nodeName)
+	_, stat, err := z.conn.Get(path)
+	if err != nil {
+		return err
+	}
+	return z.conn.Delete(path, stat.Version)
+}
+
 func (z *ZkManager) RegisterServerNode(prefix, nodeName string, data ...byte) error {
 	return z.doRegister(fmt.Sprintf("%s/%s", prefix, nodeName), false, data...)
 }
