@@ -1,7 +1,6 @@
 package loadbalance
 
 import (
-	"errors"
 	"fmt"
 	"strings"
 
@@ -89,9 +88,6 @@ func (c *ZkConfig) UpdateConf(conf []string) {
 }
 
 func NewZkConf(format, path string, zkHosts []string) (Config, error) {
-	if strings.HasPrefix(path, "/") {
-		return nil, errors.New("not start with '/'")
-	}
 	zkManager := pkg.NewZkManager(zkHosts...)
 	zkManager.GetConnect()
 	defer zkManager.Close()
