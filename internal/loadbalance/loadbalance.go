@@ -2,10 +2,6 @@ package loadbalance
 
 import (
 	"errors"
-
-	"github.com/BoynChan/GopherProxy/internal/loadbalance/consistent_hash"
-	"github.com/BoynChan/GopherProxy/internal/loadbalance/random"
-	"github.com/BoynChan/GopherProxy/internal/loadbalance/round_robin"
 )
 
 // Author:Boyn
@@ -20,21 +16,42 @@ const (
 )
 
 type LoadBalance interface {
-	Add(...string) error
+	Add(...ConfigValue) error
 	Get(string) (string, error)
 	GetAll() []string
-	Update([]string) error
+	Update([]ConfigValue) error
 }
 
 func NewStrategy(lbType Type) (LoadBalance, error) {
 	switch lbType {
 	case Random:
-		return random.NewRandomBalance(), nil
+		return NewRandomBalance(), nil
 	case RoundRobin:
-		return round_robin.NewRoundRobin(), nil
+		return NewRoundRobin(), nil
 	case ConsistentHash:
-		return consistent_hash.NewConsistentHash(), nil
+		return NewConsistentHash(), nil
 	default:
 		return nil, errors.New("unsupported type")
 	}
+}
+
+func NewStrategyWithConf(lbType Type, mConf Config) (LoadBalance, error) {
+	configValues, err := mConf.GetConf()
+	if err != nil {
+		return nil, err
+	}
+	var b LoadBalance
+	switch lbType {
+	case Random:
+		b = NewRandomBalance()
+	case RoundRobin:
+		b = NewRoundRobin()
+	case ConsistentHash:
+		b = NewConsistentHash()
+	default:
+		return nil, errors.New("unsupported type")
+	}
+	mConf.Attach(b)
+	b.Add(configValues...)
+	return b, nil
 }
