@@ -5,15 +5,13 @@ import (
 	"github.com/BoynChan/GopherProxy/internal/proxy"
 	_ "github.com/BoynChan/GopherProxy/pkg"
 	"github.com/gin-gonic/gin"
-	"github.com/spf13/viper"
 )
 
 // Author:Boyn
 // Date:2020/9/1
 
 func main() {
-	addrs := viper.GetString("Http.WebsockerServer")
-	proxyHandler, err := proxy.NewHttpProxyHandler([]string{addrs}, loadbalance.Random)
+	proxyHandler, err := proxy.NewHttpProxyHandler("TEST_WEBSOCKET_PROXY", loadbalance.Random)
 	if err != nil {
 		panic(err)
 	}
