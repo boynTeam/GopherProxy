@@ -16,11 +16,30 @@ import (
 
 func InitUserRouter(r *gin.Engine) {
 	userControlloer := r.Group("/admin")
+	userControlloer.POST("/login", userLogin)
 	userControlloer.POST("/user", registerUser)
 	userControlloer.GET("/user/id/:id", findUserById)
 	userControlloer.GET("/user/username/:username", findUserByName)
 	userControlloer.PUT("/user/:id", updateUser)
 	userControlloer.DELETE("/user/:id", updateUser)
+}
+
+func userLogin(c *gin.Context) {
+	var userInput dto.AdminInput
+	if err := c.ShouldBindJSON(&userInput); err != nil {
+		c.JSON(http.StatusOK, pkg.ErrorMessage(pkg.ParamErrorCode))
+		return
+	}
+	admin := domain.Admin{
+		UserName: userInput.UserName,
+		Password: userInput.Password,
+	}
+	check, err := admin.LoginCheck(c, pkg.DefaultDB)
+	if err != nil {
+		c.JSON(http.StatusOK, pkg.NewMessageBuilder().Code(pkg.PasswordErrorCode).Message(err).Build())
+		return
+	}
+	c.JSON(http.StatusOK, pkg.NewMessageBuilder().Data(check).Build())
 }
 
 func registerUser(c *gin.Context) {
@@ -34,8 +53,11 @@ func registerUser(c *gin.Context) {
 		Password: userInput.Password,
 	}
 	err := admin.Save(c, pkg.DefaultDB)
-	if err != nil {
-		c.JSON(http.StatusOK, pkg.NewMessageBuilder().Code(pkg.DbErrorCode).Message(err.Error()).Build())
+	if err == pkg.DuplicateRegisterError {
+		c.JSON(http.StatusOK, pkg.NewMessageBuilder().Code(pkg.DuplicateRegisterErrorCode).Message(err).Build())
+		return
+	} else if err != nil {
+		c.JSON(http.StatusOK, pkg.NewMessageBuilder().Code(pkg.DbErrorCode).Message(err).Build())
 		return
 	}
 	admin = domain.Admin{
@@ -43,7 +65,7 @@ func registerUser(c *gin.Context) {
 	}
 	find, err := admin.Find(c, pkg.DefaultDB)
 	if err != nil {
-		c.JSON(http.StatusOK, pkg.NewMessageBuilder().Code(pkg.DbErrorCode).Message(err.Error()).Build())
+		c.JSON(http.StatusOK, pkg.NewMessageBuilder().Code(pkg.DbErrorCode).Message(err).Build())
 		return
 	}
 	c.JSON(http.StatusOK, pkg.NewMessageBuilder().Data(find).Build())
@@ -60,7 +82,7 @@ func findUserByName(c *gin.Context) {
 	}
 	user, err := admin.Find(c, pkg.DefaultDB)
 	if err != nil {
-		c.JSON(http.StatusOK, pkg.NewMessageBuilder().Code(pkg.DbErrorCode).Message(err.Error()).Build())
+		c.JSON(http.StatusOK, pkg.NewMessageBuilder().Code(pkg.DbErrorCode).Message(err).Build())
 		return
 	}
 	c.JSON(http.StatusOK, pkg.NewMessageBuilder().Data(user).Build())
@@ -84,7 +106,7 @@ func findUserById(c *gin.Context) {
 	}
 	user, err := admin.Find(c, pkg.DefaultDB)
 	if err != nil {
-		c.JSON(http.StatusOK, pkg.NewMessageBuilder().Code(pkg.DbErrorCode).Message(err.Error()).Build())
+		c.JSON(http.StatusOK, pkg.NewMessageBuilder().Code(pkg.DbErrorCode).Message(err).Build())
 		return
 	}
 	c.JSON(http.StatusOK, pkg.NewMessageBuilder().Data(user).Build())
@@ -115,13 +137,13 @@ func updateUser(c *gin.Context) {
 	}
 	err = admin.Update(c, pkg.DefaultDB)
 	if err != nil {
-		c.JSON(http.StatusOK, pkg.NewMessageBuilder().Code(pkg.DbErrorCode).Message(err.Error()).Build())
+		c.JSON(http.StatusOK, pkg.NewMessageBuilder().Code(pkg.DbErrorCode).Message(err).Build())
 		return
 	}
 	admin.Password = ""
 	user, err := admin.Find(c, pkg.DefaultDB)
 	if err != nil {
-		c.JSON(http.StatusOK, pkg.NewMessageBuilder().Code(pkg.DbErrorCode).Message(err.Error()).Build())
+		c.JSON(http.StatusOK, pkg.NewMessageBuilder().Code(pkg.DbErrorCode).Message(err).Build())
 		return
 	}
 	c.JSON(http.StatusOK, pkg.NewMessageBuilder().Data(user).Build())
@@ -145,7 +167,7 @@ func deleteUser(c *gin.Context) {
 	}
 	err = admin.Delete(c, pkg.DefaultDB)
 	if err != nil {
-		c.JSON(http.StatusOK, pkg.NewMessageBuilder().Code(pkg.DbErrorCode).Message(err.Error()).Build())
+		c.JSON(http.StatusOK, pkg.NewMessageBuilder().Code(pkg.DbErrorCode).Message(err).Build())
 		return
 	}
 	c.JSON(http.StatusOK, pkg.NewMessageBuilder().Build())

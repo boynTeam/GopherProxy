@@ -1,6 +1,7 @@
 package pkg
 
 import (
+	"errors"
 	"fmt"
 )
 
@@ -29,8 +30,14 @@ const (
 
 	DownstreamErrorCode = 1002
 
-	ParamErrorCode = 2000
-	DbErrorCode    = 2001
+	ParamErrorCode             = 2000
+	DbErrorCode                = 2001
+	PasswordErrorCode          = 2002
+	DuplicateRegisterErrorCode = 2003
+)
+
+var (
+	DuplicateRegisterError = errors.New("不能重复注册")
 )
 
 func ErrorMessage(code int, message ...string) Message {

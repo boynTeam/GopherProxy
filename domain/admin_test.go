@@ -29,7 +29,7 @@ func TestAdmin_Save(t *testing.T) {
 		Password: hashPassword(password),
 	}
 	err := admin.Save(nil, pkg.DefaultDB)
-	if err != duplicateRegisterError && err != nil {
+	if err != DuplicateRegisterError && err != nil {
 		assert.Nil(t, err)
 	}
 }

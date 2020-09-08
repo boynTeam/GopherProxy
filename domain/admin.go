@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/BoynChan/GopherProxy/pkg"
 	"github.com/gin-gonic/gin"
 	uuid "github.com/satori/go.uuid"
 	"gorm.io/gorm"
@@ -13,7 +14,6 @@ import (
 
 // Author:Boyn
 // Date:2020/9/8
-var duplicateRegisterError = errors.New("不能重复注册")
 
 type Admin struct {
 	gorm.Model
@@ -47,7 +47,7 @@ func (t *Admin) Save(c *gin.Context, db *gorm.DB) error {
 	search := &Admin{UserName: t.UserName}
 	_, err := search.Find(c, db)
 	if err == nil {
-		return duplicateRegisterError
+		return pkg.DuplicateRegisterError
 	}
 	t.Password = generateSaltPassword(t.Salt, t.Password)
 	return db.Save(t).Error
