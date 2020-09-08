@@ -37,7 +37,7 @@ func TestRegisterUser(t *testing.T) {
 		UserName: "test02",
 		Password: hashPassword("123456"),
 	}
-	message, err := pkg.PostTest("/admin/user", r, input)
+	message, _, err := pkg.PostTest("/admin/user", r, input)
 	require.Nil(t, err)
 	require.Equal(t, 2003, message.Code)
 	data, ok := message.Data.(map[string]interface{})
@@ -51,12 +51,13 @@ func TestLoginUser(t *testing.T) {
 		UserName: "test02",
 		Password: hashPassword("123456"),
 	}
-	message, err := pkg.PostTest("/admin/login", r, input)
+	message, header, err := pkg.PostTest("/admin/login", r, input)
 	require.Nil(t, err)
 	require.Equal(t, 200, message.Code)
 	data, ok := message.Data.(map[string]interface{})
 	if ok {
 		assert.Equal(t, data["user_name"], "test02")
+		assert.True(t, len(header["Set-Cookie"]) > 0)
 	}
 }
 

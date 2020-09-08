@@ -39,7 +39,7 @@ func GetTest(uri string, router *gin.Engine) (Message, error) {
 	return msg, nil
 }
 
-func PostTest(uri string, router *gin.Engine, param interface{}) (Message, error) {
+func PostTest(uri string, router *gin.Engine, param interface{}) (Message, http.Header, error) {
 	// 将参数转化为json比特流
 	jsonByte, _ := json.Marshal(param)
 
@@ -59,12 +59,12 @@ func PostTest(uri string, router *gin.Engine, param interface{}) (Message, error
 	// 读取响应body
 	body, err := ioutil.ReadAll(result.Body)
 	if err != nil {
-		return Message{}, err
+		return Message{}, nil, err
 	}
 	var msg Message
 	err = json.Unmarshal(body, &msg)
 	if err != nil {
-		return Message{}, err
+		return Message{}, nil, err
 	}
-	return msg, nil
+	return msg, result.Header, nil
 }

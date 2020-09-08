@@ -1,8 +1,10 @@
 package user
 
 import (
+	"encoding/json"
 	"net/http"
 	"strconv"
+	"time"
 
 	"github.com/BoynChan/GopherProxy/domain"
 	"github.com/BoynChan/GopherProxy/dto"
@@ -13,6 +15,10 @@ import (
 
 // Author:Boyn
 // Date:2020/9/8
+
+const (
+	userCookieName = "GATEWAY_USER_INFO"
+)
 
 func InitUserRouter(r *gin.Engine) {
 	userControlloer := r.Group("/admin")
@@ -39,7 +45,17 @@ func userLogin(c *gin.Context) {
 		c.JSON(http.StatusOK, pkg.NewMessageBuilder().Code(pkg.PasswordErrorCode).Message(err).Build())
 		return
 	}
+	sessionInfo := dto.AdminUserSession{
+		Id:        check.ID,
+		UserName:  check.UserName,
+		LoginTime: time.Now(),
+	}
+	marshal, _ := json.Marshal(sessionInfo)
+	session, _ := pkg.CookieSession.New(c.Request, userCookieName)
+	session.Values["info"] = string(marshal)
+	session.Save(c.Request, c.Writer)
 	c.JSON(http.StatusOK, pkg.NewMessageBuilder().Data(check).Build())
+
 }
 
 func registerUser(c *gin.Context) {

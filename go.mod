@@ -10,6 +10,7 @@ require (
 	github.com/go-zookeeper/zk v1.0.2
 	github.com/golang/glog v0.0.0-20160126235308-23def4e6c14b
 	github.com/golang/protobuf v1.4.2
+	github.com/gorilla/sessions v1.2.1
 	github.com/gorilla/websocket v1.4.2
 	github.com/grpc-ecosystem/grpc-gateway v1.14.4
 	github.com/magiconair/properties v1.8.1
