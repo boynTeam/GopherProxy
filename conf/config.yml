@@ -6,6 +6,7 @@ Http:
   WebsockerServer: http://127.0.0.1:2006
   Cert: cert.pem
   Key: key.pem
+
 Grpc:
   RealServer:
     127.0.0.1:50055
@@ -14,3 +15,12 @@ Zk:
   Addr: 127.0.0.1:2181
   HttpPrefix: /http_real_server
 
+Redis:
+  Addr: 127.0.0.1:6379
+
+MySQL:
+  Addr: 127.0.0.1
+  Post: 3306
+  User: root
+  Password: 84328592
+  Database: gateway
