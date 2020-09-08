@@ -20,7 +20,7 @@ Redis:
 
 MySQL:
   Addr: 127.0.0.1
-  Post: 3306
+  Port: 3306
   User: root
   Password: 84328592
   Database: gateway

@@ -14,6 +14,7 @@ require (
 	github.com/grpc-ecosystem/grpc-gateway v1.14.4
 	github.com/magiconair/properties v1.8.1
 	github.com/mwitkow/grpc-proxy v0.0.0-20181017164139-0f1106ef9c76 // indirect
+	github.com/satori/go.uuid v1.2.0
 	github.com/sirupsen/logrus v1.6.0
 	github.com/spf13/viper v1.7.1
 	github.com/stretchr/testify v1.6.1
