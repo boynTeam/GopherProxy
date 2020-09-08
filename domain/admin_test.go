@@ -1,7 +1,6 @@
 package domain
 
 import (
-	"encoding/base64"
 	"testing"
 
 	"github.com/BoynChan/GopherProxy/pkg"
@@ -25,10 +24,9 @@ func TestHashPassword(t *testing.T) {
 func TestAdmin_Save(t *testing.T) {
 	pkg.InitDB()
 	password := "123456"
-	password = base64.StdEncoding.EncodeToString([]byte(password))
 	admin := Admin{
 		UserName: "test01",
-		Password: password,
+		Password: hashPassword(password),
 	}
 	err := admin.Save(nil, pkg.DefaultDB)
 	if err != duplicateRegisterError && err != nil {
@@ -49,10 +47,9 @@ func TestAdmin_Find(t *testing.T) {
 func TestAdmin_LoginCheck(t *testing.T) {
 	pkg.InitDB()
 	password := "123456"
-	password = base64.StdEncoding.EncodeToString([]byte(password))
 	admin := Admin{
 		UserName: "test01",
-		Password: password,
+		Password: hashPassword(password),
 	}
 	check, err := admin.LoginCheck(nil, pkg.DefaultDB)
 	assert.Nil(t, err)

@@ -69,8 +69,9 @@ func (t *Admin) Update(c *gin.Context, db *gorm.DB) error {
 		return err
 	}
 	out.UserName = t.UserName
-	out.Password = t.Password
-	out.Salt = t.Salt
+	out.Salt = randomSalt()
+	out.Password = generateSaltPassword(out.Salt, t.Password)
+	out.ID = t.ID
 	return db.Save(out).Error
 }
 
