@@ -34,6 +34,7 @@ const (
 	DbErrorCode                = 2001
 	PasswordErrorCode          = 2002
 	DuplicateRegisterErrorCode = 2003
+	NotLoginErrorCode          = 2004
 )
 
 var (

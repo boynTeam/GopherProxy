@@ -16,10 +16,6 @@ import (
 // Author:Boyn
 // Date:2020/9/8
 
-const (
-	userCookieName = "GATEWAY_USER_INFO"
-)
-
 func InitUserRouter(r *gin.Engine) {
 	userControlloer := r.Group("/admin")
 	userControlloer.POST("/login", userLogin)
@@ -51,7 +47,7 @@ func userLogin(c *gin.Context) {
 		LoginTime: time.Now(),
 	}
 	marshal, _ := json.Marshal(sessionInfo)
-	session, _ := pkg.CookieSession.New(c.Request, userCookieName)
+	session, _ := pkg.CookieSession.New(c.Request, pkg.UserCookieName)
 	session.Values["info"] = string(marshal)
 	session.Save(c.Request, c.Writer)
 	c.JSON(http.StatusOK, pkg.NewMessageBuilder().Data(check).Build())
