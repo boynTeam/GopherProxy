@@ -19,11 +19,23 @@ import (
 func InitUserRouter(r *gin.Engine) {
 	userControlloer := r.Group("/admin")
 	userControlloer.POST("/login", userLogin)
+	userControlloer.GET("/logout", userLogout)
 	userControlloer.POST("/user", registerUser)
 	userControlloer.GET("/user/id/:id", findUserById)
 	userControlloer.GET("/user/username/:username", findUserByName)
 	userControlloer.PUT("/user/:id", updateUser)
 	userControlloer.DELETE("/user/:id", updateUser)
+}
+
+func userLogout(c *gin.Context) {
+	session, err := pkg.CookieSession.Get(c.Request, pkg.UserCookieName)
+	if err != nil {
+		c.JSON(http.StatusOK, pkg.NewMessageBuilder().Build())
+		return
+	}
+	session.Options.MaxAge = -1
+	session.Save(c.Request, c.Writer)
+	c.JSON(http.StatusOK, pkg.NewMessageBuilder().Build())
 }
 
 func userLogin(c *gin.Context) {

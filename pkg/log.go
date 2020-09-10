@@ -13,7 +13,7 @@ import (
 // Author:Boyn
 // Date:2020/8/31
 
-func InitLogger() {
+func init() {
 	logrus.SetLevel(logrus.InfoLevel)
 	logrus.SetOutput(os.Stdout)
 	logrus.SetFormatter(&logrusFormater{})

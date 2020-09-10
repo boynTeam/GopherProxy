@@ -9,6 +9,7 @@ import (
 	"github.com/BoynChan/GopherProxy/dto"
 	"github.com/BoynChan/GopherProxy/pkg"
 	"github.com/gin-gonic/gin"
+	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -25,7 +26,7 @@ func init() {
 }
 
 func TestFindUser(t *testing.T) {
-	message, err := pkg.GetTest(fmt.Sprintf("/admin/user/id/%d", 3), r)
+	message, _, err := pkg.GetTest(fmt.Sprintf("/admin/user/id/%d", 3), r)
 	assert.Nil(t, err)
 	assert.Equal(t, message.Code, 200)
 	data := message.Data.(map[string]interface{})
@@ -56,9 +57,23 @@ func TestLoginUser(t *testing.T) {
 	require.Equal(t, 200, message.Code)
 	data, ok := message.Data.(map[string]interface{})
 	if ok {
-		assert.Equal(t, data["user_name"], "test02")
-		assert.True(t, len(header["Set-Cookie"]) > 0)
+		require.Equal(t, data["user_name"], "test02")
+		require.True(t, len(header["Set-Cookie"]) > 0)
+		logrus.Infof("Set-Cookie:%s", header["Set-Cookie"])
 	}
+}
+
+func TestLogoutUser(t *testing.T) {
+	message, _, err := pkg.GetTest("/admin/logout", r)
+	assert.Nil(t, err)
+	assert.Equal(t, 200, message.Code)
+	headers := map[string]string{
+		"Cookie": "GATEWAY_USER_INFO=MTU5OTYxMjIxM3xEdi1CQkFFQ180SUFBUkFCRUFBQWFfLUNBQUVHYzNSeWFXNW5EQVlBQkdsdVptOEdjM1J5YVc1bkRFOEFUWHNpYVdRaU9qUXNJblZ6WlhKZmJtRnRaU0k2SW5SbGMzUXdNaUlzSW14dloybHVYM1JwYldVaU9pSXlNREl3TFRBNUxUQTVWREE0T2pRek9qTXpMamd5TURBMU9Dc3dPRG93TUNKOXweyVFk-nkhBzRg9vekXqCz2mv0OTidNBf5-TyNsbo9gQ==",
+	}
+	message, header, err := pkg.GetTest("/admin/logout", r, headers)
+	assert.Nil(t, err)
+	assert.Equal(t, 200, message.Code)
+	require.True(t, len(header["Set-Cookie"]) > 0)
 }
 
 func hashPassword(password string) string {

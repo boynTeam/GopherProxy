@@ -13,9 +13,14 @@ import (
 // Author:Boyn
 // Date:2020/9/8
 
-func GetTest(uri string, router *gin.Engine) (Message, error) {
+func GetTest(uri string, router *gin.Engine, headers ...map[string]string) (Message, http.Header, error) {
 	// 构造get请求
 	req := httptest.NewRequest(http.MethodGet, uri, nil)
+	if len(headers) > 0 {
+		for k, v := range headers[0] {
+			req.Header.Set(k, v)
+		}
+	}
 	// 初始化响应
 	w := httptest.NewRecorder()
 
@@ -29,14 +34,14 @@ func GetTest(uri string, router *gin.Engine) (Message, error) {
 	// 读取响应body
 	body, err := ioutil.ReadAll(result.Body)
 	if err != nil {
-		return Message{}, err
+		return Message{}, nil, err
 	}
 	var msg Message
 	err = json.Unmarshal(body, &msg)
 	if err != nil {
-		return Message{}, err
+		return Message{}, nil, err
 	}
-	return msg, nil
+	return msg, result.Header, nil
 }
 
 func PostTest(uri string, router *gin.Engine, param interface{}) (Message, http.Header, error) {
