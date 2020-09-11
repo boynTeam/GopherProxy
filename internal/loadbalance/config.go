@@ -82,7 +82,7 @@ func (c *ZkConfig) UpdateConf(conf []string) {
 		logrus.Errorf("Update Conf -> get Conf failed %v", err)
 		return
 	}
-	logrus.Infof("Update Service Config %+v", values)
+	logrus.Infof("Update ServiceType Config %+v", values)
 	for _, obs := range c.observers {
 		obs.Update(values)
 	}
