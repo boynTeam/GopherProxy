@@ -1,7 +1,12 @@
 package domain
 
 import (
+	"errors"
+	"fmt"
+
+	"github.com/BoynChan/GopherProxy/pkg"
 	"github.com/gin-gonic/gin"
+	"github.com/spf13/viper"
 	"gorm.io/gorm"
 )
 
@@ -28,6 +33,7 @@ type ServiceInfo struct {
 	gorm.Model
 	ServiceType int    `gorm:"column:service_type" json:"service_type"`
 	ServiceName string `gorm:"column:service_name" json:"service_name"`
+	ServicePort int    `gorm:"column:service_port" json:"service_port"`
 	ServiceDesc string `gorm:"column:service_desc" json:"service_desc"`
 	RoundType   int    `json:"round_type" gorm:"column:round_type"`
 }
@@ -36,41 +42,72 @@ func (t *ServiceInfo) TableName() string {
 	return "gateway_service_info"
 }
 
-type ServiceRule interface {
-	Find(c *gin.Context, db *gorm.DB, search ServiceRule) (ServiceRule, error)
-	Save(c *gin.Context, db *gorm.DB) error
+func (t *ServiceInfo) Save(c *gin.Context, db *gorm.DB) error {
+	return db.Save(t).Error
 }
 
-type HttpRule struct {
-	gorm.Model
-	ServiceId      uint   `json:"service_id" gorm:"column:service_id"`
-	Prefix         string `json:"prefix" gorm:"column:prefix"` // URL前缀
-	NeedHttps      int    `json:"need_https" gorm:"column:need_https"`
-	NeedWebsocket  int    `json:"need_websocket" gorm:"column:need_websocket"`
-	HeaderTransfor string `json:"header_transfor" gorm:"column:header_transfor"`
+func (t *ServiceInfo) Find(c *gin.Context, db *gorm.DB) (*ServiceInfo, error) {
+	var serviceInfo *ServiceInfo
+	err := db.Where(t).Find(serviceInfo).Error
+	return serviceInfo, err
 }
 
-func (h *HttpRule) Find(c *gin.Context, db *gorm.DB, search ServiceRule) (ServiceRule, error) {
-	var httpRule *HttpRule
-	err := db.Where(search).Find(&httpRule).Error
-	return httpRule, err
+func (t *ServiceInfo) GetServiceDetail(c *gin.Context, db *gorm.DB) (*ServiceDetail, error) {
+	zkAddr := viper.GetString("ZookeeperAddr")
+
+	baseInfo, err := t.Find(c, db)
+	if err != nil {
+		return nil, err
+	}
+
+	detail := &ServiceDetail{
+		ServiceId:      baseInfo.ID,
+		ServiceName:    baseInfo.ServiceName,
+		ServiceAddress: fmt.Sprintf("127.0.0.1:%d", baseInfo.ServicePort),
+		ServiceDesc:    baseInfo.ServiceDesc,
+		RoundType:      baseInfo.RoundType,
+	}
+	var condition ServiceRule
+	var zkRegisterPath string
+	switch baseInfo.ServiceType {
+	case HttpLoadType:
+		condition = &HttpRule{
+			ServiceId: baseInfo.ID,
+		}
+		zkRegisterPath = fmt.Sprintf("%s/%s", viper.GetString("Zk.HttpPrefix"), baseInfo.ServiceName)
+	case GrpcLoadType:
+		condition = &GrpcRule{
+			ServiceId: baseInfo.ID,
+		}
+		zkRegisterPath = fmt.Sprintf("%s/%s", viper.GetString("Zk.GrpcPrefix"), baseInfo.ServiceName)
+	default:
+		return nil, errors.New("load type not support")
+	}
+
+	serviceRule, err := condition.Find(c, db)
+	if err != nil {
+		return nil, err
+	}
+	detail.Rule = serviceRule
+	zkManager := pkg.NewZkManager([]string{zkAddr}...)
+	err = zkManager.GetConnect()
+	if err != nil {
+		return nil, err
+	}
+	nodes, err := zkManager.GetServerListByPath(zkRegisterPath)
+	if err != nil {
+		return nil, err
+	}
+	detail.ServerList = nodes
+	return detail, nil
 }
 
-func (h *HttpRule) Save(c *gin.Context, db *gorm.DB) error {
-	return db.Save(h).Error
-}
-
-func (h *HttpRule) TableName() string {
-	return "gateway_service_http_rule"
-}
-
-type GrpcRule struct {
-	gorm.Model
-	ServiceId      uint   `json:"service_id" gorm:"column:service_id"`
-	Port           int    `json:"port" gorm:"column:port"`
-	HeaderTransfor string `json:"header_transfor" gorm:"column:header_transfor"`
-}
-
-func (g *GrpcRule) TableName() string {
-	return "gateway_service_grpc_rule"
+type ServiceDetail struct {
+	ServiceId      uint        `json:"service_id"`      // 服务ID
+	ServiceName    string      `json:"service_name"`    // 服务名
+	ServiceAddress string      `json:"service_address"` // 服务地址
+	ServiceDesc    string      `json:"service_desc"`    // 服务描述
+	RoundType      int         `json:"round_type"`      // 轮询方式
+	Rule           ServiceRule `json:"rule"`            // 服务配置
+	ServerList     []string    `json:"server_list"`     // 服务下游服务器地址
 }
