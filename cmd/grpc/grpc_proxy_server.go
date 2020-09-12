@@ -7,7 +7,6 @@ import (
 
 	"github.com/BoynChan/GopherProxy/internal/loadbalance"
 	"github.com/BoynChan/GopherProxy/internal/proxy"
-	"github.com/spf13/viper"
 )
 
 // Author:Boyn
@@ -18,12 +17,12 @@ const (
 )
 
 func main() {
-	addrs := viper.GetStringSlice("Grpc.RealServer")
+	serviceName := "TEST_GRPC_PROXY"
 	lis, err := net.Listen("tcp", port)
 	if err != nil {
 		log.Fatalf("failed to listen: %v", err)
 	}
-	s, err := proxy.NewGrpcProxyServer(addrs, loadbalance.Random)
+	s, err := proxy.NewGrpcProxyServer(serviceName, loadbalance.Random)
 	if err != nil {
 		panic(err)
 	}
