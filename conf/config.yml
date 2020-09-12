@@ -14,6 +14,7 @@ Grpc:
 Zk:
   Addr: 127.0.0.1:2181
   HttpPrefix: /http_real_server
+  GrpcPrefix: /grpc_real_server
 
 Redis:
   Addr: 127.0.0.1:6379
