@@ -13,5 +13,4 @@ func main() {
 func initPkg() {
 	pkg.InitDB()
 	pkg.InitRedisCli()
-	pkg.InitLogger()
 }
