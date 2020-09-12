@@ -38,7 +38,6 @@ func (r *RateLimiter) GinMiddleWare() gin.HandlerFunc {
 			c.JSON(http.StatusOK, pkg.
 				NewMessageBuilder().
 				Code(pkg.RateLimitErrorCode).
-				Message(pkg.DefaultRateLimitErrorCode).
 				Build())
 			c.Abort()
 			return
