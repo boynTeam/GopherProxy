@@ -26,7 +26,9 @@ func init() {
 }
 
 func TestFindUser(t *testing.T) {
-	message, _, err := pkg.GetTest(fmt.Sprintf("/admin/user/id/%d", 3), r)
+	message, _, err := pkg.GetTest(r, pkg.GetParam{
+		Uri: fmt.Sprintf("/admin/user/id/%d", 3),
+	})
 	assert.Nil(t, err)
 	assert.Equal(t, message.Code, 200)
 	data := message.Data.(map[string]interface{})
@@ -38,7 +40,10 @@ func TestRegisterUser(t *testing.T) {
 		UserName: "test02",
 		Password: hashPassword("123456"),
 	}
-	message, _, err := pkg.PostTest("/admin/user", r, input)
+	message, _, err := pkg.PostTest(r, pkg.PostParam{
+		Uri:  "/admin/user",
+		Body: input,
+	})
 	require.Nil(t, err)
 	require.Equal(t, 2003, message.Code)
 	data, ok := message.Data.(map[string]interface{})
@@ -52,7 +57,10 @@ func TestLoginUser(t *testing.T) {
 		UserName: "test02",
 		Password: hashPassword("123456"),
 	}
-	message, header, err := pkg.PostTest("/admin/login", r, input)
+	message, header, err := pkg.PostTest(r, pkg.PostParam{
+		Uri:  "/admin/login",
+		Body: input,
+	})
 	require.Nil(t, err)
 	require.Equal(t, 200, message.Code)
 	data, ok := message.Data.(map[string]interface{})
@@ -64,13 +72,18 @@ func TestLoginUser(t *testing.T) {
 }
 
 func TestLogoutUser(t *testing.T) {
-	message, _, err := pkg.GetTest("/admin/logout", r)
+	message, _, err := pkg.GetTest(r, pkg.GetParam{
+		Uri: "/admin/logout",
+	})
 	assert.Nil(t, err)
 	assert.Equal(t, 200, message.Code)
 	headers := map[string]string{
 		"Cookie": "GATEWAY_USER_INFO=MTU5OTYxMjIxM3xEdi1CQkFFQ180SUFBUkFCRUFBQWFfLUNBQUVHYzNSeWFXNW5EQVlBQkdsdVptOEdjM1J5YVc1bkRFOEFUWHNpYVdRaU9qUXNJblZ6WlhKZmJtRnRaU0k2SW5SbGMzUXdNaUlzSW14dloybHVYM1JwYldVaU9pSXlNREl3TFRBNUxUQTVWREE0T2pRek9qTXpMamd5TURBMU9Dc3dPRG93TUNKOXweyVFk-nkhBzRg9vekXqCz2mv0OTidNBf5-TyNsbo9gQ==",
 	}
-	message, header, err := pkg.GetTest("/admin/logout", r, headers)
+	message, header, err := pkg.GetTest(r, pkg.GetParam{
+		Uri:    "/admin/logout",
+		Header: headers,
+	})
 	assert.Nil(t, err)
 	assert.Equal(t, 200, message.Code)
 	require.True(t, len(header["Set-Cookie"]) > 0)

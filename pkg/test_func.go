@@ -3,9 +3,11 @@ package pkg
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 
 	"github.com/gin-gonic/gin"
 )
@@ -13,13 +15,33 @@ import (
 // Author:Boyn
 // Date:2020/9/8
 
-func GetTest(uri string, router *gin.Engine, headers ...map[string]string) (Message, http.Header, error) {
+type GetParam struct {
+	Uri    string
+	Header map[string]string
+	Query  map[string]string
+}
+
+type PostParam struct {
+	Uri    string
+	Header map[string]string
+	Query  map[string]string
+	Body   interface{}
+}
+
+func GetTest(router *gin.Engine, param GetParam) (Message, http.Header, error) {
 	// 构造get请求
-	req := httptest.NewRequest(http.MethodGet, uri, nil)
-	if len(headers) > 0 {
-		for k, v := range headers[0] {
+	req := httptest.NewRequest(http.MethodGet, param.Uri, nil)
+	if param.Header != nil {
+		for k, v := range param.Header {
 			req.Header.Set(k, v)
 		}
+	}
+	if param.Query != nil {
+		queryList := make([]string, len(param.Query))
+		for k, v := range param.Query {
+			queryList = append(queryList, fmt.Sprintf("%s=%s", k, v))
+		}
+		req.RequestURI = fmt.Sprintf("%s?%s", req.RequestURI, strings.Join(queryList, "&"))
 	}
 	// 初始化响应
 	w := httptest.NewRecorder()
@@ -44,13 +66,24 @@ func GetTest(uri string, router *gin.Engine, headers ...map[string]string) (Mess
 	return msg, result.Header, nil
 }
 
-func PostTest(uri string, router *gin.Engine, param interface{}) (Message, http.Header, error) {
+func PostTest(router *gin.Engine, param PostParam) (Message, http.Header, error) {
 	// 将参数转化为json比特流
-	jsonByte, _ := json.Marshal(param)
+	jsonByte, _ := json.Marshal(param.Body)
 
 	// 构造post请求，json数据以请求body的形式传递
-	req := httptest.NewRequest(http.MethodPost, uri, bytes.NewReader(jsonByte))
-
+	req := httptest.NewRequest(http.MethodPost, param.Uri, bytes.NewReader(jsonByte))
+	if param.Header != nil {
+		for k, v := range param.Header {
+			req.Header.Set(k, v)
+		}
+	}
+	if param.Query != nil {
+		queryList := make([]string, len(param.Query))
+		for k, v := range param.Query {
+			queryList = append(queryList, fmt.Sprintf("%s=%s", k, v))
+		}
+		req.RequestURI = fmt.Sprintf("%s?%s", req.RequestURI, strings.Join(queryList, "&"))
+	}
 	// 初始化响应
 	w := httptest.NewRecorder()
 
