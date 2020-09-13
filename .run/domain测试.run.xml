@@ -1,0 +1,12 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="domain测试" type="GoTestRunConfiguration" factoryName="Go Test">
+    <module name="proxy_boyn" />
+    <working_directory value="$PROJECT_DIR$" />
+    <framework value="gotest" />
+    <kind value="PACKAGE" />
+    <package value="github.com/BoynChan/GopherProxy/domain" />
+    <directory value="$PROJECT_DIR$" />
+    <filePath value="$PROJECT_DIR$/../proxy_boyn|$PROJECT_DIR$/domain/service_rule_test.go" />
+    <method v="2" />
+  </configuration>
+</component>

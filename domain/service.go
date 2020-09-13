@@ -128,3 +128,10 @@ type ServiceDetail struct {
 	Rule           ServiceRule `json:"rule"`            // 服务配置
 	ServerList     []string    `json:"server_list"`     // 服务下游服务器地址
 }
+
+type ServicePageList struct {
+	ServiceList []ServiceInfo `json:"service_list"`
+	Total       int64         `json:"total"`
+	Page        int           `json:"page"`
+	Size        int           `json:"size"`
+}
