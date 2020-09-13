@@ -3,6 +3,7 @@ package router
 import (
 	"sync"
 
+	"github.com/BoynChan/GopherProxy/router/service"
 	"github.com/BoynChan/GopherProxy/router/user"
 	"github.com/gin-gonic/gin"
 )
@@ -14,5 +15,6 @@ var once sync.Once
 func InitRouter(r *gin.Engine) {
 	once.Do(func() {
 		user.InitUserRouter(r)
+		service.InitServiceRouter(r)
 	})
 }

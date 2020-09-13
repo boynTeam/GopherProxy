@@ -7,6 +7,7 @@ import (
 	"github.com/spf13/viper"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
+	"gorm.io/gorm/logger"
 )
 
 // Code for database. It may by MySQL or Mongo.
@@ -28,6 +29,8 @@ func InitDB() {
 		DefaultDB, err = gorm.Open(mysql.New(mysql.Config{
 			DSN: dsn,
 		}), &gorm.Config{})
+		DefaultDB.Debug()
+		DefaultDB.Logger = logger.Default.LogMode(logger.Info)
 	})
 	if err != nil {
 		panic(err)

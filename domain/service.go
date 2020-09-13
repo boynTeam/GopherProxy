@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/BoynChan/GopherProxy/dto"
 	"github.com/BoynChan/GopherProxy/pkg"
 	"github.com/gin-gonic/gin"
 	"github.com/spf13/viper"
@@ -47,13 +48,29 @@ func (t *ServiceInfo) Save(c *gin.Context, db *gorm.DB) error {
 }
 
 func (t *ServiceInfo) Find(c *gin.Context, db *gorm.DB) (*ServiceInfo, error) {
-	var serviceInfo *ServiceInfo
-	err := db.Where(t).Find(serviceInfo).Error
-	return serviceInfo, err
+	var serviceInfo ServiceInfo
+	err := db.Where(t).First(&serviceInfo).Error
+	return &serviceInfo, err
+}
+
+func (t *ServiceInfo) Delete(c *gin.Context, db *gorm.DB) error {
+	return db.Unscoped().Where(t).Delete(t).Error
+}
+
+func (t *ServiceInfo) FindByPage(c *gin.Context, db *gorm.DB, page dto.PageService) (infos []ServiceInfo, total int64, err error) {
+	err = db.Model(&ServiceInfo{}).Find(&infos).Limit((page.PageIndex - 1) * page.PageSize).Error
+	if err != nil {
+		return nil, 0, err
+	}
+	err = db.Model(&ServiceInfo{}).Count(&total).Error
+	if err != nil {
+		return nil, 0, err
+	}
+	return
 }
 
 func (t *ServiceInfo) GetServiceDetail(c *gin.Context, db *gorm.DB) (*ServiceDetail, error) {
-	zkAddr := viper.GetString("ZookeeperAddr")
+	zkAddr := viper.GetString("Zk.Addr")
 
 	baseInfo, err := t.Find(c, db)
 	if err != nil {

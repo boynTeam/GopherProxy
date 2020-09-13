@@ -23,9 +23,9 @@ type HttpRule struct {
 }
 
 func (h *HttpRule) Find(c *gin.Context, db *gorm.DB) (ServiceRule, error) {
-	var httpRule *HttpRule
-	err := db.Where(h).Find(httpRule).Error
-	return httpRule, err
+	var httpRule HttpRule
+	err := db.Where(h).First(&httpRule).Error
+	return &httpRule, err
 }
 
 func (h *HttpRule) Save(c *gin.Context, db *gorm.DB) error {
@@ -44,9 +44,9 @@ type GrpcRule struct {
 }
 
 func (g *GrpcRule) Find(c *gin.Context, db *gorm.DB) (ServiceRule, error) {
-	var grpcRule *GrpcRule
-	err := db.Where(g).Find(grpcRule).Error
-	return grpcRule, err
+	var grpcRule GrpcRule
+	err := db.Where(g).First(&grpcRule).Error
+	return &grpcRule, err
 }
 
 func (g *GrpcRule) Save(c *gin.Context, db *gorm.DB) error {

@@ -76,7 +76,7 @@ func (t *Admin) Update(c *gin.Context, db *gorm.DB) error {
 }
 
 func (t *Admin) Delete(c *gin.Context, db *gorm.DB) error {
-	return db.Delete(t).Error
+	return db.Unscoped().Where(t).Delete(t).Error
 }
 
 func randomSalt() string {
