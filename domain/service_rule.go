@@ -11,6 +11,10 @@ import (
 type ServiceRule interface {
 	Find(c *gin.Context, db *gorm.DB) (ServiceRule, error)
 	Save(c *gin.Context, db *gorm.DB) error
+	Update(c *gin.Context, db *gorm.DB) error
+	Delete(c *gin.Context, db *gorm.DB) error
+	FillServiceId(id uint)
+	FillId(id uint)
 }
 
 type HttpRule struct {
@@ -32,6 +36,22 @@ func (h *HttpRule) Save(c *gin.Context, db *gorm.DB) error {
 	return db.Save(h).Error
 }
 
+func (h *HttpRule) Update(c *gin.Context, db *gorm.DB) error {
+	return db.Save(h).Error
+}
+
+func (h *HttpRule) Delete(c *gin.Context, db *gorm.DB) error {
+	return db.Delete(h).Error
+}
+
+func (h *HttpRule) FillServiceId(id uint) {
+	h.ServiceId = id
+}
+
+func (h *HttpRule) FillId(id uint) {
+	h.ID = id
+}
+
 func (h *HttpRule) TableName() string {
 	return "gateway_service_http_rule"
 }
@@ -51,6 +71,22 @@ func (g *GrpcRule) Find(c *gin.Context, db *gorm.DB) (ServiceRule, error) {
 
 func (g *GrpcRule) Save(c *gin.Context, db *gorm.DB) error {
 	return db.Save(g).Error
+}
+
+func (g *GrpcRule) Update(c *gin.Context, db *gorm.DB) error {
+	return db.Save(g).Error
+}
+
+func (g *GrpcRule) Delete(c *gin.Context, db *gorm.DB) error {
+	return db.Delete(g).Error
+}
+
+func (g *GrpcRule) FillServiceId(id uint) {
+	g.ServiceId = id
+}
+
+func (g *GrpcRule) FillId(id uint) {
+	g.ID = id
 }
 
 func (g *GrpcRule) TableName() string {
