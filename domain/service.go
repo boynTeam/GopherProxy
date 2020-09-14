@@ -20,11 +20,6 @@ const (
 )
 
 const (
-	HttpPrefixRuleType = iota + 1 //
-	HttpDomainRuleType
-)
-
-const (
 	RandomRound = iota + 1
 	RobinRound
 	ConsistencyHash
